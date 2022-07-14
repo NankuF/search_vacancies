@@ -11,18 +11,16 @@
 git clone https://github.com/NankuF/search_vacancies.git
 ```
 
-2. Создайте виртуальное окружение:<br>
-
-```commandline
-python -m venv venv
-```
-
-3. Перейдите в директорию:
+2. Перейдите в директорию:<br>
 
 ```commandline
 cd search_vacancies
 ```
+3. Создайте виртуальное окружение:<br>
 
+```commandline
+python -m venv venv
+```
 4. Установите зависимости:<br>
 
 ```commandline
