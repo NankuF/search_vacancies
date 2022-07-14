@@ -2,23 +2,25 @@
 
 Скрипт составляет файл excel по вакансиям найденным на Headhunter.<br>
 
-Данные  взяты с api Headhunter.<br>
+Данные взяты с api Headhunter.<br>
 
 ### Требования:
+
 *Если вы не на Windows, то вы и так знаете, что делать.*<br>
 
 Для пользователей Windows:<br>
+
 - У вас должен быть установлен python3. (проект написан на версии 3.10)<br>
-Рядом с меню пуск есть поле поиска. Введите туда текст и нажмите enter.
+  Рядом с меню пуск есть поле поиска. Введите туда текст и нажмите enter.
     ```commandline
     powershell.exe
     ```
-    В открывшимся окне введите:
+  В открывшимся окне введите:
     ```commandline
     python --version
     ```
-    Если будет написана версия - все отлично, python установлен.<br>
-    Если версия не указана - перейдите по ссылке и установите python:<br>
+  Если будет написана версия - все отлично, python установлен.<br>
+  Если версия не указана - перейдите по ссылке и установите python:<br>
     ```commandline
     https://www.microsoft.com/store/productId/9PJPW5LDXLZ5
     ```
@@ -26,15 +28,17 @@
     ```commandline
     https://github.com/git-for-windows/git/releases/download/v2.37.1.windows.1/Git-2.37.1-64-bit.exe
     ```
-    Проверка git аналогична проверке python:<br>
+  Проверка git аналогична проверке python:<br>
     ```
     git --version
     ```
+
 Установив python и git, вы выполнили все необходимые подготовительные работы.
 
-
 ### Установка:
+
 Все дальнейшие команды вводятся в powershell на Windows или терминал на Unix.<br>
+
 1. Скачайте проект:<br>
 
 ```commandline
@@ -46,40 +50,51 @@ git clone https://github.com/NankuF/search_vacancies.git
 ```commandline
 cd search_vacancies
 ```
+
 3. Создайте виртуальное окружение:<br>
 
 ```commandline
 python -m venv venv
 ```
-4. Активируйте окружение:
-*Unix*
+
+4. Активируйте окружение:<br>
+
+*Unix*<br>
 ```commandline
 . ./venv/bin/activate
 ```
-*Windows*
+
+*Windows*<br>
 При первом запуске Windows потребует расширить права. Введите следующий код в powershell и согласитесь со всем:<br>
+
 ```commandline
 Set-ExecutionPolicy -ExecutionPolicy AllSigned -Scope CurrentUser
 ```
+
 Введите следующий код:<br>
+
 ```commandline
 . .\venv\Scripts\activate
 ```
-Должно получиться так:<br>
-![img_1.png](img_1.png)
+
+Должно получиться так:
+![img_1.png](img_1.png)<br>
+
 5. Установите зависимости:<br>
 
 ```commandline
 pip install -r requirements.txt
 ```
-5. Запуск:<br>
-`--vacancy` - Название вакансии.<br>
-`--location`- Можно ввести город, регион или страну.<br>
-`--need_salary` - Укажите этот ключ, если хотите увидеть вакансии с указанной зарплатой.<br>
-`--period` - За какой период искать работу. Указать количество дней. Максимум 30.<br>
-`--schedule` - График работы: remote | fullDay | shift | flexible (
-                             удаленная работа; полный день; сменный график; гибкий график). 
-                             Этот ключ можно не указывать.
+
+6. Запуск:<br>
+   `--vacancy` - Название вакансии.<br>
+   `--location`- Можно ввести город, регион или страну.<br>
+   `--need_salary` - Укажите этот ключ, если хотите увидеть вакансии с указанной зарплатой.<br>
+   `--period` - За какой период искать работу. Указать количество дней. Максимум 30.<br>
+   `--schedule` - График работы: remote | fullDay | shift | flexible (
+   удаленная работа; полный день; сменный график; гибкий график).
+   Этот ключ можно не указывать.
+
 ```commandline
 python main.py --vacancy "Программист Python" --location "Санкт-Петербург" --need_salary --period 30 --schedule "remote"
 
