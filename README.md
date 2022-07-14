@@ -65,8 +65,8 @@ Set-ExecutionPolicy -ExecutionPolicy AllSigned -Scope CurrentUser
 ```commandline
 . .\venv\Scripts\activate
 ```
-Должно получиться так:<br>
-![img_1.png](img_1.png)
+Должно получиться так:
+![img_1.png](img_1.png)<br>
 5. Установите зависимости:<br>
 
 ```commandline
