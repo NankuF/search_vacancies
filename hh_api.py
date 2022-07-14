@@ -34,7 +34,7 @@ class Headhunter:
         payload = {'text': vacancy,
                    'area': self.get_location_id(name=location),
                    'period': period,
-                   'professional_role': self.get_professional_role(name=vacancy),
+                   # 'professional_role': self.get_professional_role(name=vacancy),
                    'only_with_salary': only_with_salary,
                    'page': 0,
                    'search_field': {'name': 'в названии вакансии'},
