@@ -4,6 +4,35 @@
 
 Данные  взяты с api Headhunter.<br>
 
+### Требования:
+*Если вы не на Windows, то вы и так знаете, что делать.*<br>
+
+Для пользователей Windows:<br>
+- У вас должен быть установлен python3. (проект написан на версии 3.10)<br>
+Рядом с меню пуск есть кнопка поиска. Введите туда текст и нажмите enter.
+    ```commandline
+    powershell.exe
+    ```
+    В открывшимся окне введите:
+    ```commandline
+    python --version
+    ```
+    Если будет написана версия - все отлично, python установлен.<br>
+    Если версия не указана - перейдите по ссылке и установите python:<br>
+    ```commandline
+    https://www.microsoft.com/store/productId/9PJPW5LDXLZ5
+    ```
+- Установите git:
+    ```commandline
+    https://github.com/git-for-windows/git/releases/download/v2.37.1.windows.1/Git-2.37.1-64-bit.exe
+    ```
+    Проверка git аналогична проверке python:<br>
+    ```
+    git --version
+    ```
+Установив python и git, вы выполнили все необходимые подготовительные работы.
+
+
 ### Установка:
 1. Скачайте проект:<br>
 
@@ -11,18 +40,16 @@
 git clone https://github.com/NankuF/search_vacancies.git
 ```
 
-2. Создайте виртуальное окружение:<br>
-
-```commandline
-python -m venv venv
-```
-
-3. Перейдите в директорию:
+2. Перейдите в директорию:<br>
 
 ```commandline
 cd search_vacancies
 ```
+3. Создайте виртуальное окружение:<br>
 
+```commandline
+python -m venv venv
+```
 4. Установите зависимости:<br>
 
 ```commandline
