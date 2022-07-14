@@ -74,7 +74,9 @@ def main():
         temp['area'] = vacancy['area']['name']
         temp['name'] = vacancy['name']
         temp['employer'] = vacancy['employer']['name']
-        temp['salary'] = f'{int(hh.predict_rub_salary_hh(vacancy["salary"]))}' if vacancy['salary'] else ''
+        temp['salary_from'] = vacancy['salary']['from'] if vacancy['salary'] else ''
+        temp['salary_to'] = vacancy['salary']['to'] if vacancy['salary'] else ''
+        temp['currency'] = vacancy['salary']['currency'] if vacancy['salary'] else ''
         temp['gross'] = 'Да' if vacancy['salary'] and vacancy['salary']['gross'] else ''
         temp['experience'] = vacancy['experience'] if vacancy['experience'] else ''
         temp['schedule'] = vacancy['schedule']['name']
@@ -90,7 +92,9 @@ def main():
                   'area',
                   'name',
                   'employer',
-                  'salary',
+                  'salary_from',
+                  'salary_to',
+                  'currency',
                   'gross',
                   'experience',
                   'schedule',
@@ -104,7 +108,9 @@ def main():
                   'Местоположение',
                   'Вакансия',
                   'Работодатель',
-                  'Скорректированная зарплата в рублях',
+                  'Зп от',
+                  'Зп до',
+                  'Валюта'
                   'До вычета налога',
                   'Опыт',
                   'График работы',

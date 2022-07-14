@@ -146,26 +146,8 @@ class Headhunter:
                     if vacancy['to']:
                         vacancy['to'] //= currency['rate']
         if vacancy['from'] and vacancy['to']:
-            return (vacancy['from'] + vacancy['to']) / 2
+            return int((vacancy['from'] + vacancy['to']) / 2)
         if vacancy['from']:
-            return vacancy['from'] * 1.2
+            return int(vacancy['from'] * 1.2)
         if vacancy['to']:
-            return vacancy['to'] * 0.8
-
-    def get_average_salary(self, collected_vacancies: list) -> dict:
-        """
-        Рассчитывает среднюю зарплату в рублях для списка вакансий.
-
-        :param collected_vacancies: список вакансий.
-        :return: словарь с рассчитанной средней зарплатой в рублях.
-        """
-        if collected_vacancies:
-            vacancies_with_salary = [self.predict_rub_salary_hh(vacancy['salary']) for vacancy in
-                                     collected_vacancies if vacancy['salary']]
-            average_salary = sum(vacancies_with_salary) / len(vacancies_with_salary)
-
-        return {
-            'vacancies_found': len(collected_vacancies),
-            'vacancies_with_salary': len(vacancies_with_salary) if collected_vacancies else 0,
-            'average_salary': f'{int(average_salary)} RUR' if collected_vacancies else 0,
-        }
+            return int(vacancy['to'] * 0.8)

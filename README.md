@@ -51,7 +51,23 @@ cd search_vacancies
 ```commandline
 python -m venv venv
 ```
-4. Установите зависимости:<br>
+4. Активируйте окружение:
+*Unix*
+```commandline
+. ./venv/bin/activate
+```
+*Windows*
+При первом запуске Windows потребует расширить права. Введите следующий код в powershell и согласитесь со всем:<br>
+```commandline
+Set-ExecutionPolicy -ExecutionPolicy AllSigned -Scope CurrentUser
+```
+Введите следующий код:<br>
+```commandline
+. .\venv\Scripts\activate
+```
+Должно получиться так:
+![img_1.png](img_1.png)
+5. Установите зависимости:<br>
 
 ```commandline
 pip install -r requirements.txt
