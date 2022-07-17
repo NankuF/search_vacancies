@@ -1,7 +1,9 @@
 import argparse
+import csv
 import datetime
 import os
 import time
+from pprint import pprint
 
 import openpyxl
 from openpyxl.styles import Font, Border, Side, Alignment, NamedStyle
@@ -66,6 +68,7 @@ def main():
     book = openpyxl.Workbook()
     sheet = book.active
 
+    summary_skills = []
     collected_vacancies = []
     for i, vacancy in enumerate(vacancies):
         temp = {}
@@ -81,6 +84,7 @@ def main():
         temp['experience'] = vacancy['experience'] if vacancy['experience'] else ''
         temp['schedule'] = vacancy['schedule']['name']
         temp['key_skills'] = vacancy.get('key_skills', '')
+        summary_skills.append(temp['key_skills'])
         temp['address'] = vacancy['address']['raw'] if vacancy['address'] else ''
         temp['station'] = vacancy['address']['metro']['station_name'] if vacancy['address'] is not None and \
                                                                          vacancy['address']['metro'] is not None else ''
@@ -129,11 +133,25 @@ def main():
 
     os.makedirs('vacancies', exist_ok=True)
     timestamp = int(time.mktime(datetime.datetime.now().timetuple()))
+
+    sum_skills = []
+    for lst in summary_skills:
+        for skill in lst.split(', '):
+            sum_skills.append(skill)
+    from collections import Counter
+    skills_count = Counter(sum_skills)
+    pprint(skills_count)
+    with open('skills.csv', 'w') as f:
+        for key in skills_count.keys():
+            f.write(f"{key},{skills_count[key]}\n")
+
     try:
         book.save(f'vacancies/{vacancy_name}_{timestamp}.xlsx')
     except PermissionError:
         print('ОШИБКА! Закройте Excel и запустите скрипт заново.')
 
+
+# todo сделать exe и tkinter
 
 if __name__ == '__main__':
     main()

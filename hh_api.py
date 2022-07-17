@@ -1,3 +1,4 @@
+import sys
 import time
 from typing import List
 
@@ -43,9 +44,14 @@ class Headhunter:
                    }
 
         while True:
+            if len(collected_vacancies) == 2000:
+                print('Достигнут предел выдачи в 2000 вакансий.', file=sys.stderr)
+                break
+
             resp = self.session.get(search_vacancies_url, params=payload)
             resp.raise_for_status()
             vacancies = resp.json()
+
             if vacancies['page'] >= vacancies['pages']:
                 break
 
