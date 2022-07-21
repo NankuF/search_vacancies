@@ -18,11 +18,11 @@ class Headhunter:
         """
         Ищет вакансии на Headhunter.
 
-        :param schedule: remote | fullDay | shift | flexible - удаленная работа; полный день; сменный график; гибкий график.
-        :param period: за какое время искать вакансии. Максимум за 30 дней.
-        :param only_with_salary: True|False, вакансии с указанной зарплатой.
         :param vacancy: название вакансии.
         :param location: город или регион.
+        :param only_with_salary: True|False, вакансии с указанной зарплатой.
+        :param period: за какое время искать вакансии. Максимум за 30 дней.
+        :param schedule: remote | fullDay | shift | flexible - удаленная работа; полный день; сменный график; гибкий график.
         :return: список словарей со средней зарплатой.
         """
 
@@ -35,12 +35,14 @@ class Headhunter:
         payload = {'text': vacancy,
                    'area': self.get_location_id(name=location),
                    'period': period,
-                   # 'professional_role': self.get_professional_role(name=vacancy),
                    'only_with_salary': only_with_salary,
                    'page': 0,
                    'search_field': {'name': 'в названии вакансии'},
                    'schedule': schedule,
                    'per_page': 100,
+                   # Дополнительный фильтр для поиска вакансий по специализации.
+                   # Не отловлены ошибки, когда названия вакансии нет в словаре специализации, поэтому отключен.
+                   # 'professional_role': self.get_professional_role(name=vacancy),
                    }
 
         while True:
@@ -126,6 +128,7 @@ class Headhunter:
 
         """
         Получает словари используемые в API Headhunter.
+        Можно использовать для конвертации валют. Курс валют hh хранит в этом словаре.
 
         :return: словари используемые в API Headhunter.
         """
@@ -133,27 +136,3 @@ class Headhunter:
         resp = self.session.get(url)
         resp.raise_for_status()
         return resp.json()
-
-    def predict_rub_salary_hh(self, vacancy: dict) -> int:
-
-        """
-        Рассчитывает среднюю зарплату в рублях для одной вакансии.
-
-        :param vacancy: словарь с данными о вакансии.
-        :return: усредненная зарплата в рублях.
-        """
-
-        if vacancy['currency'] not in 'RUR':
-            currencies = self.dictionaries['currency']
-            for currency in currencies:
-                if vacancy['currency'] == currency['code']:
-                    if vacancy['from']:
-                        vacancy['from'] //= currency['rate']
-                    if vacancy['to']:
-                        vacancy['to'] //= currency['rate']
-        if vacancy['from'] and vacancy['to']:
-            return int((vacancy['from'] + vacancy['to']) / 2)
-        if vacancy['from']:
-            return int(vacancy['from'] * 1.2)
-        if vacancy['to']:
-            return int(vacancy['to'] * 0.8)

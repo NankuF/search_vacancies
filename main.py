@@ -1,9 +1,12 @@
+"""
+Вариант скрипта для запуска через консоль.
+"""
 import argparse
-import csv
 import datetime
 import os
 import time
-from pprint import pprint
+from collections import Counter
+from typing import List
 
 import openpyxl
 from openpyxl.styles import Font, Border, Side, Alignment, NamedStyle
@@ -28,6 +31,9 @@ def create_parser():
 
 
 def sheet_style(sheet):
+    """
+    Настроить стили таблицы excel.
+    """
     alignment = Alignment(horizontal='center', vertical='center')
 
     for columns in sheet:
@@ -47,14 +53,29 @@ def sheet_style(sheet):
         cell.alignment = alignment
 
 
-def main():
+def get_vacancies(vacancy: str = None,
+                  location: str = None,
+                  period: str | int = None,
+                  need_salary: bool = None,
+                  schedule: str = None,
+                  save_vacancies: bool = True) -> list[dict]:
+    """
+    Главная функция для управления получением вакансий. Предполагается, что запуск будет через консоль.
+    :param vacancy: Название вакансии.
+    :param location: Местоположение на русском языке.
+    :param period: За какой период искать в днях.
+    :param need_salary: Искать вакансии только с указанными зарплатами.
+    :param schedule: График работы, если None, то все графики работы.
+    :param save_vacancies: Сохранять вакансии в excel или нет.
+    :return: список собранных вакансий.
+    """
     parser = create_parser()
     args = parser.parse_args()
-    vacancy_name = args.vacancy or 'Программист Python'
-    location = args.location or 'Москва'
-    need_salary = args.need_salary or False
-    period = args.period or '1'
-    schedule = args.schedule or None
+    vacancy_name = args.vacancy or vacancy or 'Программист Python'
+    location = args.location or location or 'Москва'
+    need_salary = args.need_salary or need_salary or False
+    period = args.period or period or '1'
+    schedule = args.schedule or schedule or None
 
     hh = Headhunter()
 
@@ -68,7 +89,6 @@ def main():
     book = openpyxl.Workbook()
     sheet = book.active
 
-    summary_skills = []
     collected_vacancies = []
     for i, vacancy in enumerate(vacancies):
         temp = {}
@@ -84,7 +104,6 @@ def main():
         temp['experience'] = vacancy['experience'] if vacancy['experience'] else ''
         temp['schedule'] = vacancy['schedule']['name']
         temp['key_skills'] = vacancy.get('key_skills', '')
-        summary_skills.append(temp['key_skills'])
         temp['address'] = vacancy['address']['raw'] if vacancy['address'] else ''
         temp['station'] = vacancy['address']['metro']['station_name'] if vacancy['address'] is not None and \
                                                                          vacancy['address']['metro'] is not None else ''
@@ -128,30 +147,54 @@ def main():
         sheet.append(values)
 
     sheet_style(sheet)
-
     sheet.auto_filter.ref = sheet.dimensions
 
-    os.makedirs('vacancies', exist_ok=True)
-    timestamp = int(time.mktime(datetime.datetime.now().timetuple()))
+    if save_vacancies and collected_vacancies:
+        os.makedirs('vacancies', exist_ok=True)
+        timestamp = int(time.mktime(datetime.datetime.now().timetuple()))
+        try:
+            book.save(f'vacancies/{vacancy_name}_{timestamp}.xlsx')
+            print('Вакансии сохранены в папку "vacancies".')
+        except PermissionError:
+            print('ОШИБКА! Закройте Excel и запустите скрипт заново.')
+    else:
+        print('Вакансий по такому запросу не найдено.')
 
+    return collected_vacancies
+
+
+def run_skills_counter(vacancy, location='Россия', period=30, save_skills=True) -> List[str]:
+    """
+    Запускает подсчет ключевых навыков и сохраняет их в txt.
+    :param vacancy: Название вакансии.
+    :param location: Местоположение на русском языке.
+    :param period: За какой период искать в днях.
+    :param save_skills: Сохранять ключевые навыки в txt или нет.
+    :return: список собранных вакансий.
+    """
+    summary_skills = [vacancy.get('key_skills') for vacancy in get_vacancies(vacancy, location, period,
+                                                                             save_vacancies=False)]
     sum_skills = []
     for lst in summary_skills:
         for skill in lst.split(', '):
             sum_skills.append(skill)
-    from collections import Counter
     skills_count = Counter(sum_skills)
-    pprint(skills_count)
-    with open('skills.csv', 'w') as f:
-        for key in skills_count.keys():
-            f.write(f"{key},{skills_count[key]}\n")
+    skills = list(map(lambda key: (key, skills_count[key]), skills_count))
+    sorted_skills = sorted(skills, key=lambda x: x[1], reverse=True)
+    skills = list(map(lambda skill: f'{skill[0]} = {skill[1]}', sorted_skills))
 
-    try:
-        book.save(f'vacancies/{vacancy_name}_{timestamp}.xlsx')
-    except PermissionError:
-        print('ОШИБКА! Закройте Excel и запустите скрипт заново.')
+    if save_skills:
+        os.makedirs('skills', exist_ok=True)
+        with open('skills/skills.txt', 'w', encoding='utf-8') as f:
+            for skill in skills:
+                f.write(f"{skill}\n")
+
+    return skills
 
 
-# todo сделать exe и tkinter
+def main():
+    get_vacancies()
+
 
 if __name__ == '__main__':
     main()
