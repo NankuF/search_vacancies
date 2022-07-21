@@ -25,8 +25,11 @@ def main():
         while True:
             vacancy = input('- Введите название вакансии: ')
             if not vacancy.isalpha():
-                print('Название вакансии должно состоять только из букв.')
-                continue
+                if '-' in vacancy or ' ' in vacancy:
+                    pass
+                else:
+                    print('Название вакансии может состоять только из букв, знака дефиса и пробела.')
+                    continue
             break
 
         while True:
