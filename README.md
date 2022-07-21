@@ -1,9 +1,17 @@
 ## Сбор вакансий и ключевых навыков профессии Headhunter в файлы excel и txt.
 
-Скрипт может собирать вакансии в файл excel.<br>
-![img.png](img.png)<br>
+Скрипт может собрать вакансии в файл excel.<br>
+<details>
+  <summary>Фото</summary>
+   <img src="img.png">
+</details>
+
 Скрипт может собрать ключевые навыки профессии в файл txt.<br>
-![img_1.png](img_1.png)<br>
+<details>
+  <summary>Фото</summary>
+   <img src="img_1.png">
+</details>
+
 Данные взяты с api Headhunter.<br>
 
 ### Требования:
@@ -11,8 +19,10 @@
 - git
 
 ### Запуск под Windows:<br>
-1. Перейдите в директорию `for windows`<br>
-2. Скачайте и запустите .exe файлы.<br>
+- Скачайте и запустите .exe файлы.<br>
+Собрать вакансии - [скачать](https://github.com/NankuF/search_vacancies/raw/master/for%20windows/get_vacancies.exe)<br>
+Собрать ключевые навыки - [скачать](https://github.com/NankuF/search_vacancies/raw/master/for%20windows/get_skills.exe)<br>
+
 
 ### Установка и запуск для Unix:
 
