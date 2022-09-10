@@ -55,10 +55,10 @@ def sheet_style(sheet):
 
 def get_vacancies(vacancy: str = None,
                   location: str = None,
-                  period: str | int = None,
+                  period: str or int = None,
                   need_salary: bool = None,
                   schedule: str = None,
-                  save_vacancies: bool = True) -> list[dict]:
+                  save_vacancies: bool = True) -> List[dict]:
     """
     Главная функция для управления получением вакансий. Предполагается, что запуск будет через консоль.
     :param vacancy: Название вакансии.
