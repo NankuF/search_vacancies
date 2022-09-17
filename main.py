@@ -4,7 +4,6 @@
 import argparse
 import datetime
 import os
-import time
 from collections import Counter
 from typing import List
 
@@ -151,7 +150,7 @@ def get_vacancies(vacancy: str = None,
 
     if save_vacancies and collected_vacancies:
         os.makedirs('vacancies', exist_ok=True)
-        timestamp = int(time.mktime(datetime.datetime.now().timetuple()))
+        timestamp = datetime.datetime.now().strftime("%d-%m-%Y-%H:%M")
         try:
             book.save(f'vacancies/{vacancy_name}_{timestamp}.xlsx')
             print('Вакансии сохранены в папку "vacancies".')
@@ -160,10 +159,12 @@ def get_vacancies(vacancy: str = None,
     else:
         print('Вакансий по такому запросу не найдено.')
 
+    run_skills_counter(vacancies=collected_vacancies, vacancy_name=vacancy_name)
+
     return collected_vacancies
 
 
-def run_skills_counter(vacancy, location='Россия', period=30, save_skills=True) -> List[str]:
+def run_skills_counter(vacancies, vacancy_name, save_skills=True) -> List[str]:
     """
     Запускает подсчет ключевых навыков и сохраняет их в txt.
     :param vacancy: Название вакансии.
@@ -172,8 +173,7 @@ def run_skills_counter(vacancy, location='Россия', period=30, save_skills=
     :param save_skills: Сохранять ключевые навыки в txt или нет.
     :return: список собранных вакансий.
     """
-    summary_skills = [vacancy.get('key_skills') for vacancy in get_vacancies(vacancy, location, period,
-                                                                             save_vacancies=False)]
+    summary_skills = [vacancy.get('key_skills') for vacancy in vacancies]
     sum_skills = []
     for lst in summary_skills:
         for skill in lst.split(', '):
@@ -185,10 +185,11 @@ def run_skills_counter(vacancy, location='Россия', period=30, save_skills=
 
     if save_skills:
         os.makedirs('skills', exist_ok=True)
-        with open('skills/skills.txt', 'w', encoding='utf-8') as f:
+        timestamp = datetime.datetime.now().strftime("%d-%m-%Y-%H:%M")
+        with open(f'skills/skills_{vacancy_name}_{timestamp}.txt', 'w', encoding='utf-8') as f:
             for skill in skills:
                 f.write(f"{skill}\n")
-
+        print('Ключевые навыки сохранены в папку "skills".')
     return skills
 
 
