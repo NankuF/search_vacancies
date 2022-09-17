@@ -1,12 +1,14 @@
-## Сбор вакансий и ключевых навыков профессии Headhunter в файлы excel и txt.
+## Сбор вакансий и ключевых навыков профессии Headhunter в файлы excel и txt. Рассылка резюме по выбранным вакансиям
 
-Скрипт может собрать вакансии в файл excel.<br>
+#### UPD: приложение работает только с GUI, т.к. требуется авторизация пользователя в браузере с поддержкой javascript.
+
+Приложение может собрать вакансии в файл excel.<br>
 <details>
   <summary>Фото</summary>
    <img src="img.png">
 </details>
 
-Скрипт может собрать ключевые навыки профессии в файл txt.<br>
+Приложение может собрать ключевые навыки профессии в файл txt.<br>
 <details>
   <summary>Фото</summary>
    <img src="img_1.png">
@@ -22,6 +24,7 @@
 - Скачайте и запустите .exe файлы.<br>
 Собрать вакансии - [скачать](https://github.com/NankuF/search_vacancies/raw/master/for%20windows/get_vacancies.exe)<br>
 Собрать ключевые навыки - [скачать](https://github.com/NankuF/search_vacancies/raw/master/for%20windows/get_skills.exe)<br>
+Рассылка резюме - не реализован под Windows.
 
 
 ### Установка и запуск для Unix:
@@ -54,8 +57,19 @@ python -m venv venv
 ```commandline
 pip install -r requirements.txt
 ```
+6. Создайте приложение на [dev.hh.ru](https://dev.hh.ru/admin).
+7. Добавьте файл .env. В нем укажите данные вашего приложения `CLIENT_ID` и `CLIENT_SECRET`.
+Остальные данные добавятся автоматически после авторизации.
+```text
+CLIENT_ID=client_id_in_your_app
+CLIENT_SECRET=client_secret_in_your_app
 
-6. Запуск:<br>
+APP_ACCESS_TOKEN=will be added automatically after authorization
+USER_ACCESS_TOKEN=will be added automatically after authorization
+USER_REFRESH_TOKEN=will be added automatically after authorization
+```
+
+8. Запуск:<br>
    `--vacancy` - Название вакансии.<br>
    `--location`- Можно ввести город, регион или страну.<br>
    `--need_salary` - Укажите этот ключ, если хотите увидеть вакансии с указанной зарплатой.<br>
