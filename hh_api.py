@@ -1,17 +1,95 @@
 import sys
 import time
+import webbrowser
 from typing import List
 
+import environs
 import requests
 from tqdm import tqdm
 
 
 class Headhunter:
-    HEADERS = {'User-Agent': '(my@gmail.com)'}
 
     def __init__(self):
+        self.env = environs.Env()
+        self.env.read_env()
+        self.developer_email = self.env.str('DEVELOPER_EMAIL', 'this_user_not_developer@fakemail.com')
+        self.client_id = self.env.str('CLIENT_ID', None)
+        self.client_secret = self.env.str('CLIENT_SECRET', None)
+        if not all([self.client_id, self.client_secret]):
+            raise ValueError(
+                """Создайте приложение по адресу https://dev.hh.ru/admin,
+                 затем сохраните CLIENT_ID и CLIENT_SECRET в .env """)
+
+        self.app_access_token = self.env.str('APP_ACCESS_TOKEN', None)
+        if not self.app_access_token:
+            self.__app_authorization()
+        self.user_access_token = self.env.str('USER_ACCESS_TOKEN', None)
+        self.user_refresh_token = self.env.str('USER_REFRESH_TOKEN', None)
+        if not all([self.user_access_token, self.user_refresh_token]):
+            self.__check_user_authorization()
+        self.user_authorization_headers = {'Authorization': f'Bearer {self.user_access_token}'}
+        self.headers = {'User-Agent': self.developer_email}
+
         self.session = requests.Session()
         self.dictionaries = self.get_dictionaries()
+
+        print('Инициализация приложения: ОК')
+
+    def __app_authorization(self):
+        """
+        Получение токена приложения (авторизация приложения).
+        Токен имеет неограниченный срок жизни, интервал запроса - раз в 5 мин.
+        """
+        if not self.app_access_token:
+            response = requests.post('https://hh.ru/oauth/token',
+                                     data={'grant_type': 'client_credentials',
+                                           'client_id': self.client_id,
+                                           'client_secret': self.client_secret},
+                                     headers={'Content-Type': 'application/x-www-form-urlencoded'})
+            response.raise_for_status()
+            app_authorization_info = response.json()
+            if 'access_token' in app_authorization_info:
+                self.app_access_token = app_authorization_info['access_token']
+                with open('.env', 'a') as file:
+                    file.write(f'\nAPP_ACCESS_TOKEN={self.app_access_token}')
+            else:
+                raise ValueError('Не удалось получить токен приложения. Повторите через 5 минут.')
+        else:
+            print('Авторизация приложения: ОК')
+
+    def __check_user_authorization(self):
+        if not self.user_access_token:
+            self.__user_authorization()
+        else:
+            response_info = self.get_user_info()
+            if response_info.get('errors'):
+                self.__user_authorization()
+            else:
+                print('Авторизация пользователя: ОК')
+
+    def __user_authorization(self):
+        if self.app_access_token:
+            is_true = webbrowser.open(f'https://hh.ru/oauth/authorize?response_type=code&'
+                                      f'client_id={self.client_id}', new=2, autoraise=True)
+            if is_true:
+                authorization_code = input('Нажмите "Продолжить" и введите код авторизации из url, параметр code= : ')
+        else:
+            raise ValueError('Необходимо получить токен авторизации приложения.')
+
+        # Получение access и refresh токенов
+        response = requests.post('https://hh.ru/oauth/token', data={
+            'grant_type': 'authorization_code',
+            'client_id': {self.client_id},
+            'client_secret': {self.client_secret},
+            'code': {authorization_code}})
+        response.raise_for_status()
+        user_tokens_info = response.json()
+        self.user_access_token = user_tokens_info['access_token']
+        self.user_refresh_token = user_tokens_info['refresh_token']
+        with open('.env', 'a') as file:
+            file.write(f'\nUSER_ACCESS_TOKEN={self.user_access_token}')
+            file.write(f'\nUSER_REFRESH_TOKEN={self.user_refresh_token}')
 
     def get_hh_vacancies(self, vacancy: str, location: str, only_with_salary: bool, period: int, schedule: str = None,
                          ) -> List[dict]:
@@ -136,3 +214,7 @@ class Headhunter:
         resp = self.session.get(url)
         resp.raise_for_status()
         return resp.json()
+
+
+if __name__ == '__main__':
+    hh = Headhunter()
