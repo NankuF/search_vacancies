@@ -3,6 +3,7 @@
 """
 import argparse
 import datetime
+import logging
 import os
 from collections import Counter
 from typing import List
@@ -11,6 +12,8 @@ import openpyxl
 from openpyxl.styles import Font, Border, Side, Alignment, NamedStyle
 
 from hh_api import Headhunter
+
+logger = logging.getLogger('app.main')
 
 
 def create_parser():
@@ -153,11 +156,11 @@ def get_vacancies(vacancy: str = None,
         timestamp = datetime.datetime.now().strftime("%d-%m-%Y-%H:%M")
         try:
             book.save(f'vacancies/{vacancy_name}_{timestamp}.xlsx')
-            print('Вакансии сохранены в папку "vacancies".')
+            logger.info('Вакансии сохранены в папку "vacancies".')
         except PermissionError:
-            print('ОШИБКА! Закройте Excel и запустите скрипт заново.')
+            logger.error('ОШИБКА! Закройте Excel и запустите скрипт заново.')
     else:
-        print('Вакансий по такому запросу не найдено.')
+        logger.info('Вакансий по такому запросу не найдено.')
 
     run_skills_counter(vacancies=collected_vacancies, vacancy_name=vacancy_name)
 
@@ -189,7 +192,7 @@ def run_skills_counter(vacancies, vacancy_name, save_skills=True) -> List[str]:
         with open(f'skills/skills_{vacancy_name}_{timestamp}.txt', 'w', encoding='utf-8') as f:
             for skill in skills:
                 f.write(f"{skill}\n")
-        print('Ключевые навыки сохранены в папку "skills".')
+        logger.info('Ключевые навыки сохранены в папку "skills".')
     return skills
 
 

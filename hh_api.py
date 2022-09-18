@@ -1,4 +1,4 @@
-import sys
+import logging
 import time
 import webbrowser
 from typing import List
@@ -6,6 +6,26 @@ from typing import List
 import environs
 import requests
 from tqdm import tqdm
+
+
+def init_logger(name):
+    logger = logging.getLogger(name)
+    # FORMAT = '%(asctime)s - %(name)s:%(lineno)s - %(levelname)s - %(message)s'
+    FORMAT = '%(asctime)s - %(name)s:%(lineno)s - %(levelname)s - %(message)s'
+    logger.setLevel(logging.DEBUG)
+    sh = logging.StreamHandler()
+    sh.setFormatter(logging.Formatter(FORMAT))
+    sh.setLevel(logging.DEBUG)
+    fh = logging.FileHandler(filename='logs/logs.log')
+    fh.setFormatter(logging.Formatter(FORMAT))
+    fh.setLevel(logging.DEBUG)
+    logger.addHandler(sh)
+    logger.addHandler(fh)
+    logger.debug('logger was initialized')
+
+
+init_logger('app')
+logger = logging.getLogger('app.hh_api')
 
 
 class Headhunter:
@@ -20,8 +40,10 @@ class Headhunter:
         self.client_id = self.env.str('CLIENT_ID', None)
         self.client_secret = self.env.str('CLIENT_SECRET', None)
         if not all([self.client_id, self.client_secret]):
-            raise ValueError(
-                """Создайте приложение по адресу https://dev.hh.ru/admin, затем сохраните CLIENT_ID и CLIENT_SECRET в .env """)
+            msg = """Создайте приложение по адресу https://dev.hh.ru/admin, затем сохраните CLIENT_ID и CLIENT_SECRET в .env """
+            logging.critical(msg)
+            raise ValueError(msg)
+
         self.app_access_token = self.env.str('APP_ACCESS_TOKEN', None)
         if not self.app_access_token:
             self.__app_authorization()
@@ -32,7 +54,7 @@ class Headhunter:
         self.user_authorization_headers = {'Authorization': f'Bearer {self.user_access_token}'}
         self.headers = {'User-Agent': self.developer_email}
 
-        print('Инициализация приложения: ОК')
+        logger.debug('Инициализация приложения: ОК')
 
     def __app_authorization(self):
         """
@@ -52,9 +74,11 @@ class Headhunter:
                 with open('.env', 'a') as file:
                     file.write(f'\nAPP_ACCESS_TOKEN={self.app_access_token}')
             else:
-                raise ValueError('Не удалось получить токен приложения. Повторите через 5 минут.')
+                msg = 'Не удалось получить токен приложения. Повторите через 5 минут.'
+                logger.critical(msg)
+                raise ValueError(msg)
         else:
-            print('Авторизация приложения: ОК')
+            logger.debug('Авторизация приложения: ОК')
 
     def __check_user_authorization(self):
         if not self.user_access_token:
@@ -64,7 +88,7 @@ class Headhunter:
             if response_info.get('errors'):
                 self.__user_authorization()
             else:
-                print('Авторизация пользователя: ОК')
+                logger.debug('Авторизация пользователя: ОК')
 
     def __user_authorization(self):
         if self.app_access_token:
@@ -75,7 +99,9 @@ class Headhunter:
             if is_true:
                 authorization_code = input('Нажмите "Продолжить" и введите код авторизации из url, параметр code= : ')
         else:
-            raise ValueError('Необходимо получить токен авторизации приложения.')
+            msg = 'Необходимо получить токен авторизации приложения.'
+            logger.critical(msg)
+            raise ValueError(msg)
 
         # Получение access и refresh токенов
         response = self.session.post('https://hh.ru/oauth/token', data={
@@ -104,7 +130,9 @@ class Headhunter:
             if resume['title'] == resume_name:
                 return resume['id']
             else:
-                raise NameError('Резюме с таким названием не найдено.')
+                msg = 'Резюме с таким названием не найдено.'
+                logger.critical(msg)
+                raise NameError(msg)
 
     def filter_vacancies(self, vacancies: list, blacklist: list):
         """
@@ -135,8 +163,8 @@ class Headhunter:
                     response_info = response.json()
                     if not response_info['already_applied']:
                         filtered_on_apply_vacancies.append(vacancy)
-                    else:  # todo убрать
-                        print('Ранее откликались на: ', vacancy['name'], vacancy['alternate_url'])
+                    else:
+                        logger.debug(f'Ранее откликались на: {vacancy["name"]}, {vacancy["alternate_url"]}')
 
         return filtered_on_apply_vacancies
 
@@ -144,10 +172,10 @@ class Headhunter:
 
         params = {'resume_id': resume_id, 'vacancy_id': vacancy['id'], 'message': message}
         response = self.session.post('https://api.hh.ru/negotiations',
-                                 headers={**self.user_authorization_headers, 'Content-Type': 'multipart/form-data'},
-                                 params=params)
+                                     headers={**self.user_authorization_headers, 'Content-Type': 'multipart/form-data'},
+                                     params=params)
         if response.status_code == 201:
-            print(f'Отклик на вакансию "{vacancy["name"]}" - успешно отправлен.')
+            logger.info(f'Отклик на вакансию "{vacancy["name"]}" - успешно отправлен.')
 
     def get_hh_vacancies(self, vacancy: str, location: str, only_with_salary: bool, period: int, schedule: str = None,
                          ) -> List[dict]:
@@ -183,7 +211,7 @@ class Headhunter:
 
         while True:
             if len(collected_vacancies) == 2000:
-                print('Достигнут предел выдачи в 2000 вакансий.', file=sys.stderr)
+                logger.warning('Достигнут предел выдачи в 2000 вакансий.')
                 break
 
             resp = self.session.get(search_vacancies_url, params=payload, headers=self.user_authorization_headers)
@@ -209,6 +237,7 @@ class Headhunter:
         print(
             f"| Requests: {vacancies['found']}; Total time: {task_time} s; RPS: {rps} |\n"
         )
+        logger.info(f"| Requests: {vacancies['found']}; Total time: {task_time} s; RPS: {rps} |\n")
 
         return collected_vacancies
 
@@ -237,7 +266,10 @@ class Headhunter:
                     for city in region['areas']:
                         if name.lower() == city['name'].lower():
                             return city['id']
-        raise NameError(f'{self.get_location_id.__name__}: Город не найден.')
+
+        msg = f'{self.get_location_id.__name__}: Город не найден.'
+        logging.critical(msg)
+        raise NameError(msg)
 
     def get_professional_role(self, name: str) -> str:
 
@@ -288,4 +320,3 @@ if __name__ == '__main__':
                                              blacklist=['Преподаватель', 'Senior', 'Аналитик', 'Старший', 'QA', 'Team',
                                                         'Автор', 'Ведущий', 'тест', 'Data', 'Математик', 'С++', 'C++',
                                                         'Педагог'])
-

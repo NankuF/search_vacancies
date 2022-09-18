@@ -1,8 +1,10 @@
+import logging
 import textwrap as tw
 import time
 
 from hh_api import Headhunter
 
+logger = logging.getLogger('app.apply_vacancies')
 
 def message():
     github = 'https://github.com/NankuF/search_vacancies'
