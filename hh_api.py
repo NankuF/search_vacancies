@@ -11,6 +11,9 @@ from tqdm import tqdm
 class Headhunter:
 
     def __init__(self):
+        self.session = requests.Session()
+        self.dictionaries = self.get_dictionaries()
+
         self.env = environs.Env()
         self.env.read_env()
         self.developer_email = self.env.str('DEVELOPER_EMAIL', 'this_user_not_developer@fakemail.com')
@@ -18,9 +21,7 @@ class Headhunter:
         self.client_secret = self.env.str('CLIENT_SECRET', None)
         if not all([self.client_id, self.client_secret]):
             raise ValueError(
-                """Создайте приложение по адресу https://dev.hh.ru/admin,
-                 затем сохраните CLIENT_ID и CLIENT_SECRET в .env """)
-
+                """Создайте приложение по адресу https://dev.hh.ru/admin, затем сохраните CLIENT_ID и CLIENT_SECRET в .env """)
         self.app_access_token = self.env.str('APP_ACCESS_TOKEN', None)
         if not self.app_access_token:
             self.__app_authorization()
@@ -31,9 +32,6 @@ class Headhunter:
         self.user_authorization_headers = {'Authorization': f'Bearer {self.user_access_token}'}
         self.headers = {'User-Agent': self.developer_email}
 
-        self.session = requests.Session()
-        self.dictionaries = self.get_dictionaries()
-
         print('Инициализация приложения: ОК')
 
     def __app_authorization(self):
@@ -42,11 +40,11 @@ class Headhunter:
         Токен имеет неограниченный срок жизни, интервал запроса - раз в 5 мин.
         """
         if not self.app_access_token:
-            response = requests.post('https://hh.ru/oauth/token',
-                                     data={'grant_type': 'client_credentials',
-                                           'client_id': self.client_id,
-                                           'client_secret': self.client_secret},
-                                     headers={'Content-Type': 'application/x-www-form-urlencoded'})
+            response = self.session.post('https://hh.ru/oauth/token',
+                                         data={'grant_type': 'client_credentials',
+                                               'client_id': self.client_id,
+                                               'client_secret': self.client_secret},
+                                         headers={'Content-Type': 'application/x-www-form-urlencoded'})
             response.raise_for_status()
             app_authorization_info = response.json()
             if 'access_token' in app_authorization_info:
@@ -70,6 +68,8 @@ class Headhunter:
 
     def __user_authorization(self):
         if self.app_access_token:
+            # todo срок жизни токена пользователя - 14 дней. В течении этого срока можно держать скрипт на сервере
+            # todo затем потребуется обновить этот токен.
             is_true = webbrowser.open(f'https://hh.ru/oauth/authorize?response_type=code&'
                                       f'client_id={self.client_id}', new=2, autoraise=True)
             if is_true:
@@ -78,7 +78,7 @@ class Headhunter:
             raise ValueError('Необходимо получить токен авторизации приложения.')
 
         # Получение access и refresh токенов
-        response = requests.post('https://hh.ru/oauth/token', data={
+        response = self.session.post('https://hh.ru/oauth/token', data={
             'grant_type': 'authorization_code',
             'client_id': {self.client_id},
             'client_secret': {self.client_secret},
@@ -90,6 +90,64 @@ class Headhunter:
         with open('.env', 'a') as file:
             file.write(f'\nUSER_ACCESS_TOKEN={self.user_access_token}')
             file.write(f'\nUSER_REFRESH_TOKEN={self.user_refresh_token}')
+
+    def get_user_info(self):
+        response = self.session.get('https://api.hh.ru/me', headers={**self.user_authorization_headers, **self.headers})
+        response.raise_for_status()
+        return response.json()
+
+    def get_resume_id(self, resume_name: str):
+        response = self.session.get('https://api.hh.ru/resumes/mine', headers=self.user_authorization_headers)
+        response.raise_for_status()
+        resumes = response.json()
+        for resume in resumes['items']:
+            if resume['title'] == resume_name:
+                return resume['id']
+            else:
+                raise NameError('Резюме с таким названием не найдено.')
+
+    def filter_vacancies(self, vacancies: list, blacklist: list):
+        """
+        Фильтрация вакансий по следующим условиям:
+        1. Проверка на стаж и требование пройти тест.
+        2. Проверка на вхождение слов из названия вакансии в blacklist.
+        3. Проверка - откликался ли уже на эту вакансию.
+        """
+        no_experience = 'Нет опыта'
+        between_1_and_3 = 'От 1 года до 3 лет'
+        between_3_and_6 = 'От 3 до 6 лет'
+        more_6 = 'Более 6 лет'
+
+        filtered_on_apply_vacancies = []
+        for vacancy in vacancies:
+            if vacancy['experience'] in [between_3_and_6, more_6] or vacancy['has_test']:
+                continue
+            elif blacklist:
+                has_stop_word = False
+                for word in blacklist:
+                    if word.lower() in vacancy['name'].lower():
+                        has_stop_word = True
+                        break
+                if not has_stop_word:
+                    response = self.session.get(f'https://api.hh.ru/vacancies/{vacancy["id"]}/resumes_by_status',
+                                                headers=self.user_authorization_headers)
+                    response.raise_for_status()
+                    response_info = response.json()
+                    if not response_info['already_applied']:
+                        filtered_on_apply_vacancies.append(vacancy)
+                    else:  # todo убрать
+                        print('Ранее откликались на: ', vacancy['name'], vacancy['alternate_url'])
+
+        return filtered_on_apply_vacancies
+
+    def apply_vacancy(self, resume_id: str, vacancy: dict, message: str):
+
+        params = {'resume_id': resume_id, 'vacancy_id': vacancy['id'], 'message': message}
+        response = self.session.post('https://api.hh.ru/negotiations',
+                                 headers={**self.user_authorization_headers, 'Content-Type': 'multipart/form-data'},
+                                 params=params)
+        if response.status_code == 201:
+            print(f'Отклик на вакансию "{vacancy["name"]}" - успешно отправлен.')
 
     def get_hh_vacancies(self, vacancy: str, location: str, only_with_salary: bool, period: int, schedule: str = None,
                          ) -> List[dict]:
@@ -128,7 +186,7 @@ class Headhunter:
                 print('Достигнут предел выдачи в 2000 вакансий.', file=sys.stderr)
                 break
 
-            resp = self.session.get(search_vacancies_url, params=payload)
+            resp = self.session.get(search_vacancies_url, params=payload, headers=self.user_authorization_headers)
             resp.raise_for_status()
             vacancies = resp.json()
 
@@ -136,8 +194,10 @@ class Headhunter:
                 break
 
             for vacancy in tqdm(vacancies['items'], desc='Fetching data...', colour='GREEN'):
-                resp = self.session.get(url=f'{search_vacancies_url}/{vacancy["id"]}')
-                resp.raise_for_status()
+                resp = self.session.get(url=f'{search_vacancies_url}/{vacancy["id"]}',
+                                        headers=self.user_authorization_headers)
+                if resp.status_code != 200:  # todo 403 - капча. обработать.
+                    return collected_vacancies
                 key_skills = resp.json().get('key_skills', '')
                 vacancy['key_skills'] = ', '.join([skill for skills in key_skills for skill in skills.values()])
                 vacancy['experience'] = resp.json()['experience']['name']
@@ -218,3 +278,14 @@ class Headhunter:
 
 if __name__ == '__main__':
     hh = Headhunter()
+    info = hh.get_user_info()
+    # Введите название резюме, которым хотите откликаться на вакансии.
+    resume_id = hh.get_resume_id(resume_name='Junior+ Python developer')
+    # Поиск вакансии по ключевому слову
+    collected_vacancies = hh.get_hh_vacancies(vacancy='Python', location='Россия', period=3, only_with_salary=False)
+    # Фильтрация полученных вакансий
+    filtered_vacancies = hh.filter_vacancies(vacancies=collected_vacancies,
+                                             blacklist=['Преподаватель', 'Senior', 'Аналитик', 'Старший', 'QA', 'Team',
+                                                        'Автор', 'Ведущий', 'тест', 'Data', 'Математик', 'С++', 'C++',
+                                                        'Педагог'])
+
