@@ -1,33 +1,35 @@
-## Сбор вакансий и ключевых навыков профессии Headhunter в файлы excel и txt. Рассылка резюме по выбранным вакансиям
+## Рассылка резюме, сбор вакансий и ключевых навыков в Headhunter
+#### UPD 17.09.2022: приложение работает только с GUI, т.к. требуется авторизация пользователя в браузере с поддержкой javascript.
+Если вы желаете получить только список вакансий и ключевые навыки - проще всего запустить файлы с расширением `exe` под Windows из папки `for windows`.
 
-#### UPD: приложение работает только с GUI, т.к. требуется авторизация пользователя в браузере с поддержкой javascript.
+### Возможности приложения
+1. Сбор вакансии в файл excel.
+   <details>
+     <summary>Фото</summary>
+      <img src="img.png">
+   </details>
 
-Приложение может собрать вакансии в файл excel.<br>
-<details>
-  <summary>Фото</summary>
-   <img src="img.png">
-</details>
+2. Сбор ключевых навыков в файл txt.
+   <details>
+     <summary>Фото</summary>
+      <img src="img_1.png">
+   </details>
 
-Приложение может собрать ключевые навыки профессии в файл txt.<br>
-<details>
-  <summary>Фото</summary>
-   <img src="img_1.png">
-</details>
+3. Рассылка резюме по собранным вакансиям.
 
-Данные взяты с api Headhunter.<br>
-
-### Требования:
-- Python выше 3.5 (проект написан на версии 3.10) 
-- git
-
+### Требования для разработчиков:
+- Python 3.8.
+- git.
+- созданное приложение на [dev.hh.ru](https://dev.hh.ru/admin).
+- файл `.env` с секретными ключами.
 ### Запуск под Windows:<br>
-- Скачайте и запустите .exe файлы.<br>
-Собрать вакансии - [скачать](https://github.com/NankuF/search_vacancies/raw/master/for%20windows/get_vacancies.exe)<br>
-Собрать ключевые навыки - [скачать](https://github.com/NankuF/search_vacancies/raw/master/for%20windows/get_skills.exe)<br>
-Рассылка резюме - не реализован под Windows.
+  - Скачайте и запустите .exe файлы.<br>
+  Собрать вакансии - [скачать](https://github.com/NankuF/search_vacancies/raw/master/for%20windows/get_vacancies.exe)<br>
+  Собрать ключевые навыки - [скачать](https://github.com/NankuF/search_vacancies/raw/master/for%20windows/get_skills.exe)<br>
+  Рассылка резюме - не реализована под Windows.
 
 
-### Установка и запуск для Unix:
+### Установка приложения в Unix:
 
 1. Скачайте проект:<br>
 
@@ -69,15 +71,17 @@ USER_ACCESS_TOKEN=will be added automatically after authorization
 USER_REFRESH_TOKEN=will be added automatically after authorization
 ```
 
-8. Запуск:<br>
+## Запуск
+### Сбор вакансий и ключевых навыков
    `--vacancy` - Название вакансии.<br>
    `--location`- Можно ввести город, регион или страну.<br>
    `--need_salary` - Укажите этот ключ, если хотите увидеть вакансии с указанной зарплатой.<br>
    `--period` - За какой период искать работу. Указать количество дней. Максимум 30.<br>
    `--schedule` - График работы: remote | fullDay | shift | flexible (
    удаленная работа; полный день; сменный график; гибкий график).
-   Этот ключ можно не указывать.
-
+   Этот ключ можно не указывать.<br>
+   **Вакансии сохраняются в папке `vacancies`**<br>
+   **Ключевые навыки сохраняются в папке `skills`**<br>
 ```commandline
 python main.py --vacancy "Программист Python" --location "Санкт-Петербург" --need_salary --period 30 --schedule "remote"
 
@@ -93,6 +97,7 @@ python main.py --vacancy "Прораб" --location "Россия" --period 1
 
 ```
 
-
-### Вакансии сохраняются в папке `vacancies`
-### Ключевые навыки сохраняются в папке `skills`
+### Рассылка резюме
+```commandline
+python apply_vacancies.py
+```
