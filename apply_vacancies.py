@@ -60,7 +60,7 @@ def run_apply_vacancies(vacancies_amount: int, interval: int):
 
 
 if __name__ == '__main__':
-    env = environs.Env
+    env = environs.Env()
     env.read_env()
     vacancies_amount = env.int('HH_VACANCIES_AMOUNT')
     interval = env.int('HH_INTERVAL')
