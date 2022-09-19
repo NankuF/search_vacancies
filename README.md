@@ -1,5 +1,5 @@
-## Рассылка резюме, сбор вакансий и ключевых навыков в Headhunter
-#### UPD 17.09.2022: приложение работает только с GUI, т.к. требуется авторизация пользователя в браузере с поддержкой javascript.
+# Отклик на вакансии, сбор вакансий и ключевых навыков в Headhunter
+#### UPD 19.09.2022: приложение требуется GUI, т.к. раз в 14 дней истекают куки пользователя и необходима его авторизация в браузере с поддержкой javascript.
 Если вы желаете получить только список вакансий и ключевые навыки - проще всего запустить файлы с расширением `exe` под Windows из папки `for windows`.
 
 ### Возможности приложения
@@ -15,7 +15,7 @@
       <img src="img_1.png">
    </details>
 
-3. Рассылка резюме по собранным вакансиям.
+3. Отклик на вакансии.
 
 ### Требования для разработчиков:
 - Python 3.8.
@@ -26,7 +26,7 @@
   - Скачайте и запустите .exe файлы.<br>
   Собрать вакансии - [скачать](https://github.com/NankuF/search_vacancies/raw/master/for%20windows/get_vacancies.exe)<br>
   Собрать ключевые навыки - [скачать](https://github.com/NankuF/search_vacancies/raw/master/for%20windows/get_skills.exe)<br>
-  Рассылка резюме - не реализована под Windows.
+  Отклик на вакансии - не реализовано под Windows.
 
 
 ### Установка приложения в Unix:
@@ -60,15 +60,22 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 6. Создайте приложение на [dev.hh.ru](https://dev.hh.ru/admin).
-7. Добавьте файл .env. В нем укажите данные вашего приложения `CLIENT_ID` и `CLIENT_SECRET`.
-Остальные данные добавятся автоматически после авторизации.
+7. Добавьте файл .env и заполните его следующими данными.<br>
+`HH_RESUME_NAME` - название вашего резюме.
+`HH_VACANCIES_AMOUNT=2` - отклик на 2 вакансии за один раз.<br>
+`HH_INTERVAL=3600` - интервал между откликами на вакансии (2 отклика - интервал - 2 отклика - интервал...).<br>
+`HH_CLIENT_ID` - взять `Client ID` с [dev.hh.ru](https://dev.hh.ru/admin).<br>
+`HH_CLIENT_SECRET` - взять `Client Secret` с [dev.hh.ru](https://dev.hh.ru/admin). <br>
+`HH_APP_ACCESS_TOKEN` - взять `Токен приложения` с [dev.hh.ru](https://dev.hh.ru/admin).<br>
+`HH_USER_ACCESS_TOKEN` - данные сохранятся в `.env` автоматически.<br>
+`HH_USER_ACCESS_TOKEN` - данные сохранятся в `.env` автоматически.<br>
 ```text
-CLIENT_ID=client_id_in_your_app
-CLIENT_SECRET=client_secret_in_your_app
-
-APP_ACCESS_TOKEN=will be added automatically after authorization
-USER_ACCESS_TOKEN=will be added automatically after authorization
-USER_REFRESH_TOKEN=will be added automatically after authorization
+HH_RESUME_NAME=Junior+ Python developer
+HH_CLIENT_ID=client_id_in_your_app
+HH_CLIENT_SECRET=client_secret_in_your_app
+HH_APP_ACCESS_TOKEN=will be added automatically after authorization
+HH_USER_ACCESS_TOKEN=will be added automatically after authorization
+HH_USER_ACCESS_TOKEN=will be added automatically after authorization
 ```
 
 ## Запуск
@@ -97,7 +104,20 @@ python main.py --vacancy "Прораб" --location "Россия" --period 1
 
 ```
 
-### Рассылка резюме
+### Отклик на вакансии
 ```commandline
 python apply_vacancies.py
+```
+
+### Запуск в контейнере
+1. Создать образ
+```commandline
+docker build . -t apply_vacancies
+```
+2. Запустить контейнер
+```commandline
+docker run -d --restart unless-stopped --name apply_vacancies\
+-v /home/nanku/PycharmProjects/search_vacancies/logs:/app/logs\
+-e TZ=$(cat /etc/timezone) --env-file .env  apply_vacancies
+
 ```
