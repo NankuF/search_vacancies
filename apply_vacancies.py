@@ -2,9 +2,12 @@ import logging
 import textwrap as tw
 import time
 
+import environs
+
 from hh_api import Headhunter
 
 logger = logging.getLogger('app.apply_vacancies')
+
 
 def message():
     github = 'https://github.com/NankuF/search_vacancies'
@@ -38,7 +41,7 @@ def run_apply_vacancies(vacancies_amount: int, interval: int):
 
     """
     hh = Headhunter()
-    resume_id = hh.get_resume_id(resume_name='Junior+ Python developer')
+    resume_id = hh.get_resume_id(resume_name=hh.resume_name)
 
     while True:
         collected_vacancies = hh.get_hh_vacancies(vacancy='Python', location='Россия', period=1, only_with_salary=False)
@@ -57,4 +60,8 @@ def run_apply_vacancies(vacancies_amount: int, interval: int):
 
 
 if __name__ == '__main__':
-    run_apply_vacancies(vacancies_amount=1, interval=3600)
+    env = environs.Env
+    env.read_env()
+    vacancies_amount = env.int('HH_VACANCIES_AMOUNT')
+    interval = env.int('HH_INTERVAL')
+    run_apply_vacancies(vacancies_amount=vacancies_amount, interval=interval)

@@ -10,7 +10,6 @@ from tqdm import tqdm
 
 def init_logger(name):
     logger = logging.getLogger(name)
-    # FORMAT = '%(asctime)s - %(name)s:%(lineno)s - %(levelname)s - %(message)s'
     FORMAT = '%(asctime)s - %(name)s:%(lineno)s - %(levelname)s - %(message)s'
     logger.setLevel(logging.DEBUG)
     sh = logging.StreamHandler()
@@ -36,19 +35,20 @@ class Headhunter:
 
         self.env = environs.Env()
         self.env.read_env()
+        self.resume_name = self.env.str('HH_RESUME_NAME')
         self.developer_email = self.env.str('DEVELOPER_EMAIL', 'this_user_not_developer@fakemail.com')
-        self.client_id = self.env.str('CLIENT_ID', None)
-        self.client_secret = self.env.str('CLIENT_SECRET', None)
+        self.client_id = self.env.str('HH_CLIENT_ID', None)
+        self.client_secret = self.env.str('HH_CLIENT_SECRET', None)
         if not all([self.client_id, self.client_secret]):
             msg = """Создайте приложение по адресу https://dev.hh.ru/admin, затем сохраните CLIENT_ID и CLIENT_SECRET в .env """
             logging.critical(msg)
             raise ValueError(msg)
 
-        self.app_access_token = self.env.str('APP_ACCESS_TOKEN', None)
+        self.app_access_token = self.env.str('HH_APP_ACCESS_TOKEN', None)
         if not self.app_access_token:
             self.__app_authorization()
-        self.user_access_token = self.env.str('USER_ACCESS_TOKEN', None)
-        self.user_refresh_token = self.env.str('USER_REFRESH_TOKEN', None)
+        self.user_access_token = self.env.str('HH_USER_ACCESS_TOKEN', None)
+        self.user_refresh_token = self.env.str('HH_USER_REFRESH_TOKEN', None)
         if not all([self.user_access_token, self.user_refresh_token]):
             self.__check_user_authorization()
         self.user_authorization_headers = {'Authorization': f'Bearer {self.user_access_token}'}
@@ -175,7 +175,7 @@ class Headhunter:
                                      headers={**self.user_authorization_headers, 'Content-Type': 'multipart/form-data'},
                                      params=params)
         if response.status_code == 201:
-            logger.info(f'Отклик на вакансию "{vacancy["name"]}" - успешно отправлен.')
+            logger.info(f'Отклик на вакансию "{vacancy["name"]}:{vacancy["employer"]["name"]}" - успешно отправлен.')
 
     def get_hh_vacancies(self, vacancy: str, location: str, only_with_salary: bool, period: int, schedule: str = None,
                          ) -> List[dict]:
