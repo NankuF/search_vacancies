@@ -17,7 +17,7 @@ def init_logger(name):
     sh.setLevel(logging.DEBUG)
     fh = logging.FileHandler(filename='logs/logs.log')
     fh.setFormatter(logging.Formatter(FORMAT))
-    fh.setLevel(logging.DEBUG)
+    fh.setLevel(logging.INFO)
     logger.addHandler(sh)
     logger.addHandler(fh)
     logger.debug('logger was initialized')
@@ -175,7 +175,9 @@ class Headhunter:
                                      headers={**self.user_authorization_headers, 'Content-Type': 'multipart/form-data'},
                                      params=params)
         if response.status_code == 201:
-            logger.info(f'Отклик на вакансию "{vacancy["name"]}:{vacancy["employer"]["name"]}" - успешно отправлен.')
+            msg = f'Отклик на вакансию "{vacancy["name"]}:{vacancy["employer"]["name"]}" - успешно отправлен.'
+            logger.info(msg)
+            return msg
 
     def get_hh_vacancies(self, vacancy: str, location: str, only_with_salary: bool, period: int, schedule: str = None,
                          ) -> List[dict]:
