@@ -108,8 +108,14 @@ python main.py --vacancy "Прораб" --location "Россия" --period 1
 ```commandline
 python apply_vacancies.py
 ```
-
-### Запуск в контейнере
+#### Подключение телеграм
+**UPD 20.09.2022** - добавлена возможность отправлять отклик в ваш приватный телеграм канал.<br>
+Зарегистрируйте ваше приложение [в телеграм](https://my.telegram.org/apps)<br>
+Добавьте `App api_id` и `App api_hash` в .env как `TELETHON_API_ID` и `TELETHON_API_HASH`<br>
+Создайте свой приватный канал в телеграм, и скопируйте его id из url, добавив к нему -100<br>
+Например https://web.telegram.org/z/#777000   = -100777000. Это значение сохраните в .env в переменной `PRIVATE_CHANNEL_ID`<br>
+При первом запуске приложения потребуется создать сессию, введя номер телефона и код. Не забудьте передать эту сессию в контейнер.
+#### Запуск в контейнере
 1. Создать образ
 ```commandline
 docker build . -t apply_vacancies
@@ -117,7 +123,6 @@ docker build . -t apply_vacancies
 2. Запустить контейнер
 ```commandline
 docker run -d --restart unless-stopped --name apply_vacancies\
--v /home/nanku/PycharmProjects/search_vacancies/logs:/app/logs\
--e TZ=$(cat /etc/timezone) --env-file .env  apply_vacancies
-
+ -v /home/nanku/PycharmProjects/search_vacancies/logs:/app/logs\
+ -e TZ=$(cat /etc/timezone) --env-file .env  apply_vacancies
 ```
