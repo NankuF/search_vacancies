@@ -123,6 +123,6 @@ docker build . -t apply_vacancies
 2. Запустить контейнер
 ```commandline
 docker run -d --restart unless-stopped --name apply_vacancies\
- -v /home/nanku/PycharmProjects/search_vacancies/logs:/app/logs\
+ -v $(pwd)/logs:/app/logs\
  -e TZ=$(cat /etc/timezone) --env-file .env  apply_vacancies
 ```
