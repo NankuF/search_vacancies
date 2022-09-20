@@ -94,3 +94,6 @@ venv/
 */*.swp
 */*/*.swp
 */*/*/*.swp
+
+# Telethon
+*.session
