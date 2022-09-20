@@ -6,13 +6,13 @@
 1. Сбор вакансии в файл excel.
    <details>
      <summary>Фото</summary>
-      <img src="img.png">
+      <img src="images/img.png">
    </details>
 
 2. Сбор ключевых навыков в файл txt.
    <details>
      <summary>Фото</summary>
-      <img src="img_1.png">
+      <img src="images/img_1.png">
    </details>
 
 3. Отклик на вакансии.
