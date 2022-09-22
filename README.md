@@ -60,8 +60,11 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 6. Создайте приложение на [dev.hh.ru](https://dev.hh.ru/admin).
-7. Добавьте файл .env и заполните его следующими данными.<br>
-`HH_RESUME_NAME` - название вашего резюме.
+7. Добавьте файл .env и заполните его следующими данными<br>
+`TELETHON_API_ID` - id вашего приложения [в телеграм](https://my.telegram.org/apps).<br>
+`TELETHON_API_HASH` - hash вашего приложения [в телеграм](https://my.telegram.org/apps).<br>
+`PRIVATE_CHANNEL_ID` - id вашего приватного телеграм-канала.<br>
+`HH_RESUME_NAME` - название вашего резюме.<br>
 `HH_VACANCIES_AMOUNT=2` - отклик на 2 вакансии за один раз.<br>
 `HH_INTERVAL=3600` - интервал между откликами на вакансии (2 отклика - интервал - 2 отклика - интервал...).<br>
 `HH_CLIENT_ID` - взять `Client ID` с [dev.hh.ru](https://dev.hh.ru/admin).<br>
@@ -70,7 +73,12 @@ pip install -r requirements.txt
 `HH_USER_ACCESS_TOKEN` - данные сохранятся в `.env` автоматически.<br>
 `HH_USER_ACCESS_TOKEN` - данные сохранятся в `.env` автоматически.<br>
 ```text
+TELETHON_API_ID=your id
+TELETHON_API_HASH=your hash
+PRIVATE_CHANNEL_ID=-1001234567890  (your channel id)
 HH_RESUME_NAME=Junior+ Python developer
+HH_VACANCIES_AMOUNT=2
+HH_INTERVAL=3600
 HH_CLIENT_ID=client_id_in_your_app
 HH_CLIENT_SECRET=client_secret_in_your_app
 HH_APP_ACCESS_TOKEN=will be added automatically after authorization
@@ -110,11 +118,12 @@ python apply_vacancies.py
 ```
 #### Подключение телеграм
 **UPD 20.09.2022** - добавлена возможность отправлять отклик в ваш приватный телеграм канал.<br>
-Зарегистрируйте ваше приложение [в телеграм](https://my.telegram.org/apps)<br>
+Зарегистрируйте ваше приложение [в телеграм](https://my.telegram.org/apps).<br>
 Добавьте `App api_id` и `App api_hash` в .env как `TELETHON_API_ID` и `TELETHON_API_HASH`<br>
-Создайте свой приватный канал в телеграм, и скопируйте его id из url, добавив к нему -100<br>
-Например https://web.telegram.org/z/#777000   = -100777000. Это значение сохраните в .env в переменной `PRIVATE_CHANNEL_ID`<br>
-При первом запуске приложения потребуется создать сессию, введя номер телефона и код. Не забудьте передать эту сессию в контейнер.
+Создайте свой приватный канал в телеграм, и скопируйте его id из url, добавив к нему -100.<br>
+Например https://web.telegram.org/z/#777000   = -100777000. Это значение сохраните в .env в переменной `PRIVATE_CHANNEL_ID`.<br>
+При первом запуске приложения потребуется создать сессию, введя номер телефона и код. Не забудьте передать эту сессию в контейнер,
+положив ее в директорию `logs` на вашем хосте.
 #### Запуск в контейнере
 1. Создать образ
 ```commandline
@@ -122,7 +131,9 @@ docker build . -t apply_vacancies
 ```
 2. Запустить контейнер
 ```commandline
-docker run -d --restart unless-stopped --name apply_vacancies\
+docker run -d --restart unless-stopped\
+ --name apply_vacancies\
  -v $(pwd)/logs:/app/logs\
- -e TZ=$(cat /etc/timezone) --env-file .env  apply_vacancies
+ -e TZ=$(cat /etc/timezone)\
+ --env-file .env  apply_vacancies
 ```

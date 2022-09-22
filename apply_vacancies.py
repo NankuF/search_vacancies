@@ -21,14 +21,18 @@ def check_secrets(*args):
     return is_all_true
 
 
-async def send_to_telegram_channel(message: str):
+async def send_messages_to_telegram_channel(messages: list):
     telethon_api_id = env.int('TELETHON_API_ID')
     telethon_api_hash = env.str('TELETHON_API_HASH')
     private_channel_id = env.int('PRIVATE_CHANNEL_ID')
-
-    client = TelegramClient('session_name', telethon_api_id, telethon_api_hash)
+    client = TelegramClient('logs/session_name', api_id=telethon_api_id, api_hash=telethon_api_hash)
     await client.start()
-    await client.send_message(entity=private_channel_id, message=message)
+    logger.debug('Подключился к телеграм')
+    for message in messages:
+        await client.send_message(entity=private_channel_id, message=message)
+    logger.debug('Отправил все сообщения')
+    await client.disconnect()
+    logger.debug('Отключился от телеграм')
 
 
 def message():
@@ -73,12 +77,21 @@ def run_apply_vacancies(vacancies_amount: int, interval: int):
                                                             'Автор', 'Ведущий', 'тест', 'Data', 'Математик', 'С++',
                                                             'C++',
                                                             'Педагог'])
+        messages = []
         if len(filtered_vacancies[:vacancies_amount]):
             # todo в api есть ограничение на кол-во откликов, но неизвестен этот предел.
             for vacancy in filtered_vacancies[:vacancies_amount]:
                 msg = hh.apply_vacancy(resume_id=resume_id, vacancy=vacancy, message=message())
-                if check_secrets('TELETHON_API_ID', 'TELETHON_API_HASH', 'PRIVATE_CHANNEL_ID'):
-                    asyncio.run(send_to_telegram_channel(message=msg))
+                messages.append(msg)
+            logger.debug('Есть вакансии. Откликнулся на все.')
+        else:
+            msg = 'Нет новых вакансий.'
+            messages.append(msg)
+            logger.info(msg)
+        if check_secrets('TELETHON_API_ID', 'TELETHON_API_HASH', 'PRIVATE_CHANNEL_ID'):
+            asyncio.run(send_messages_to_telegram_channel(messages=messages))
+            logger.debug('Отправка в чат: ОК')
+        logger.debug(f'Жду {interval} секунд...')
         time.sleep(interval)
 
 
