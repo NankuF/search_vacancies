@@ -70,8 +70,7 @@ pip install -r requirements.txt
 `HH_CLIENT_ID` - взять `Client ID` с [dev.hh.ru](https://dev.hh.ru/admin).<br>
 `HH_CLIENT_SECRET` - взять `Client Secret` с [dev.hh.ru](https://dev.hh.ru/admin). <br>
 `HH_APP_ACCESS_TOKEN` - взять `Токен приложения` с [dev.hh.ru](https://dev.hh.ru/admin).<br>
-`HH_USER_ACCESS_TOKEN` - данные сохранятся в `.env` автоматически.<br>
-`HH_USER_ACCESS_TOKEN` - данные сохранятся в `.env` автоматически.<br>
+
 ```text
 TELETHON_API_ID=your id
 TELETHON_API_HASH=your hash
@@ -82,10 +81,15 @@ HH_INTERVAL=3600
 HH_CLIENT_ID=client_id_in_your_app
 HH_CLIENT_SECRET=client_secret_in_your_app
 HH_APP_ACCESS_TOKEN=will be added automatically after authorization
-HH_USER_ACCESS_TOKEN=will be added automatically after authorization
-HH_USER_ACCESS_TOKEN=will be added automatically after authorization
-```
 
+```
+Создайте файл `.user`. В него добавятся автоматические следующие данные
+`HH_USER_ACCESS_TOKEN` - данные сохранятся в `.env` автоматически.<br>
+`HH_USER_REFRESH_TOKEN` - данные сохранятся в `.env` автоматически.<br>
+```text
+HH_USER_ACCESS_TOKEN=will be added automatically after authorization
+HH_USER_REFRESH_TOKEN=will be added automatically after authorization
+```
 ## Запуск
 ### Сбор вакансий и ключевых навыков
    `--vacancy` - Название вакансии.<br>
@@ -135,5 +139,7 @@ docker run -d --restart unless-stopped\
  --name apply_vacancies\
  -v $(pwd)/logs:/app/logs\
  -e TZ=$(cat /etc/timezone)\
- --env-file .env  apply_vacancies
+ --env-file .env\
+ --env-file .user\
+ apply_vacancies
 ```

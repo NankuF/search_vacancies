@@ -35,6 +35,8 @@ class Headhunter:
 
         self.env = environs.Env()
         self.env.read_env()
+        self.user = environs.Env()
+        self.user.read_env(path='.user')
         self.resume_name = self.env.str('HH_RESUME_NAME')
         self.developer_email = self.env.str('DEVELOPER_EMAIL', 'this_user_not_developer@fakemail.com')
         self.client_id = self.env.str('HH_CLIENT_ID', None)
@@ -47,8 +49,8 @@ class Headhunter:
         self.app_access_token = self.env.str('HH_APP_ACCESS_TOKEN', None)
         if not self.app_access_token:
             self.__app_authorization()
-        self.user_access_token = self.env.str('HH_USER_ACCESS_TOKEN', None)
-        self.user_refresh_token = self.env.str('HH_USER_REFRESH_TOKEN', None)
+        self.user_access_token = self.user.str('HH_USER_ACCESS_TOKEN', None)
+        self.user_refresh_token = self.user.str('HH_USER_REFRESH_TOKEN', None)
         if not all([self.user_access_token, self.user_refresh_token]):
             self.__check_user_authorization()
         self.user_authorization_headers = {'Authorization': f'Bearer {self.user_access_token}'}
@@ -113,14 +115,19 @@ class Headhunter:
         user_tokens_info = response.json()
         self.user_access_token = user_tokens_info['access_token']
         self.user_refresh_token = user_tokens_info['refresh_token']
-        with open('.env', 'a') as file:
-            file.write(f'\nUSER_ACCESS_TOKEN={self.user_access_token}')
-            file.write(f'\nUSER_REFRESH_TOKEN={self.user_refresh_token}')
+        with open('.user', 'w') as file:
+            file.write(f'\nHH_USER_ACCESS_TOKEN={self.user_access_token}')
+            file.write(f'\nHH_USER_REFRESH_TOKEN={self.user_refresh_token}')
 
     def get_user_info(self):
         response = self.session.get('https://api.hh.ru/me', headers={**self.user_authorization_headers, **self.headers})
-        response.raise_for_status()
-        return response.json()
+        try:
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError:
+            # todo прикрути selenium для авторизации.
+            logger.warning('Требуется заново авторизовать юзера. Прикрути уже selenium!')
+            self.__user_authorization()
 
     def get_resume_id(self, resume_name: str):
         response = self.session.get('https://api.hh.ru/resumes/mine', headers=self.user_authorization_headers)
