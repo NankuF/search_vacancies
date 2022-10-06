@@ -169,9 +169,22 @@ class Headhunter:
                     response.raise_for_status()
                     response_info = response.json()
                     if not response_info['already_applied']:
-                        filtered_on_apply_vacancies.append(vacancy)
-                    else:
-                        logger.debug(f'Ранее откликались на: {vacancy["name"]}, {vacancy["alternate_url"]}')
+                        if not filtered_on_apply_vacancies:
+                            filtered_on_apply_vacancies.append(vacancy)
+                        else:
+                            update_list = 0
+                            for filtered_vacancy in filtered_on_apply_vacancies:
+                                current_employer = vacancy['employer']['name']
+                                filtered_employer = filtered_vacancy['employer']['name']
+                                vacancy_name = vacancy['name']
+                                filtered_vacancy_name = filtered_vacancy['name']
+                                if current_employer == filtered_employer and vacancy_name == filtered_vacancy_name:
+                                    update_list = 0
+                                    break
+                                else:
+                                    update_list = 1
+                            if update_list:
+                                filtered_on_apply_vacancies.append(vacancy)
 
         return filtered_on_apply_vacancies
 
